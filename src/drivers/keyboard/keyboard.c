@@ -1,6 +1,7 @@
 #include <cpu/io.h>
 #include <kernel/device.h>
 #include <drivers/keyboard/keyboard.h>
+#include <drivers/video/video.h>
 
 #define KEYBOARD_BUF_SIZE       32
 
@@ -92,5 +93,5 @@ void keyboard_handler() {
     if(isShift) {
         c = ascii_table_shift[scancode];
     }
-    keyboard_buf_insert(c); 
+    keyboard_buf_insert(c);
 }

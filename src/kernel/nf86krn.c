@@ -89,7 +89,8 @@ void kmain() {
 
     proc_start_execute();
 
-    /*lldt(prcs_tbl[0].ldt_sel);
+    lldt(prcs_tbl[0].ldt_sel);
+    ltr(prcs_tbl[0].tss_sel);
 
     asm(
         "movl %0, %%esp\n"
@@ -100,7 +101,7 @@ void kmain() {
         :
         : "r" (prcs_tbl[0].kstack)
         : "memory"
-    );*/
+    );
 
     //for(;;);
 

@@ -40,30 +40,34 @@ void tbl_rm_process(u32 pid) {
 }
 
 void proc_swap() {
-  if(prcs_start_executing) {
-    cur_prcs=0;
-    /*cur_prcs+=1;
-    if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
-    while(prcs_tbl[cur_prcs].pid == FREE &&
-        prcs_tbl[cur_prcs].state != ACTIVE) {
-
-        cur_prcs++;
-        if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
-    }*/
-
+  if(prcs_start_executing)  {
+    desc_t* tss_desc = (desc_t*)(gdt_addr + (prcs_tbl[cur_prcs].tss_sel << 3));
+    tss_desc->acces &= ~0x02;
     ltr(prcs_tbl[cur_prcs].tss_sel);
     lldt(prcs_tbl[cur_prcs].ldt_sel);
-
+   
     asm(
-        "movl %0, %%esp\n"
-        //"popl %%ds\n"
-        //"popl %%es\n"
-        //"popal\n"
-        //"iret"
-        :
-        : "r" (prcs_tbl[cur_prcs].kstack)
-        : "memory"
+      "movl %0, %%esp\n"
+      "movb $0x20, %%al\n"
+      "outb %%al, $0x20\n"
+      "outb %%al, $0xA0\n"
+      "popl %%es\n"
+      "popl %%ds\n"
+      "popal\n"
+      "sti\n"
+      "iret"
+      :
+      : "r" (prcs_tbl[cur_prcs].kstack-4)
+      : "memory"
     );
+    //asm("movl %%esp, %0":"=r"(esp));
+    //video->kprintf("esp: %x\n", esp);
+
+    /*for(u32 j = 0; j < 15;j++) {
+      video->kprintf("%x\n", *(u32*)(prcs_tbl[cur_prcs].kstack-4 + j * 4));
+    }*/
+   
+    //for(;;) asm("hlt");
   }
 }
 
@@ -78,6 +82,8 @@ void proc_start_execute() {
 
   ltr(prcs_tbl[cur_prcs].tss_sel);
   lldt(prcs_tbl[cur_prcs].ldt_sel);
+
+  //ltr(prcs_tbl[0].tss_sel);
 
   asm(
       "movl %0, %%esp\n"
