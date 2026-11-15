@@ -20,6 +20,7 @@ typedef struct {
   u32 stack_limit;
   u32 kstack;
   u32 heap_base;
+  u32 flag;
   State state;
 } Process;
 

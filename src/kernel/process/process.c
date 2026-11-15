@@ -41,10 +41,32 @@ void tbl_rm_process(u32 pid) {
 
 void proc_swap() {
   if(prcs_start_executing)  {
+    prcs_tbl[cur_prcs].flag = 1;
+    cur_prcs+=1;
+    if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
+
+    while(prcs_tbl[cur_prcs].pid == FREE) {
+      cur_prcs++;
+      if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
+    }
+
+    //video->kprintf("%d", cur_prcs);
+
+    //for(;;) asm("hlt");
+    //
+    //prcs_start_executing = 0;
+    u32 i = 0;
+    if(prcs_tbl[cur_prcs].flag == 1) i = 4;
+    //cur_prcs = 0;
+    
     desc_t* tss_desc = (desc_t*)(gdt_addr + (prcs_tbl[cur_prcs].tss_sel << 3));
     tss_desc->acces &= ~0x02;
     ltr(prcs_tbl[cur_prcs].tss_sel);
     lldt(prcs_tbl[cur_prcs].ldt_sel);
+    /*for(u32 j = 0; j < 15;j++) {
+      video->kprintf("%x\n", *(u32*)(prcs_tbl[cur_prcs].kstack-4 + j * 4));
+    }
+    for(;;) asm("hlt");*/
    
     asm(
       "movl %0, %%esp\n"
@@ -57,7 +79,7 @@ void proc_swap() {
       "sti\n"
       "iret"
       :
-      : "r" (prcs_tbl[cur_prcs].kstack-4)
+      : "r" (prcs_tbl[cur_prcs].kstack-i)
       : "memory"
     );
     //asm("movl %%esp, %0":"=r"(esp));
@@ -79,6 +101,8 @@ void proc_start_execute() {
     cur_prcs++;
     if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
   }
+
+  prcs_tbl[cur_prcs].flag = 1;
 
   ltr(prcs_tbl[cur_prcs].tss_sel);
   lldt(prcs_tbl[cur_prcs].ldt_sel);
@@ -118,6 +142,7 @@ Process* process_spawn(u8* f) {
   process.ldt_sel = ldt_mk_and_push(base, limit, stack_limit);
   process.kstack = (u32)malloc(1024) + 1020;//0x1B0000;//(u32)malloc(128) + 120;
   process.tss_sel = tss_mk_and_push(0x10, process.kstack);
+  process.flag = 0;
 
   video->kprintf("S: %x\n", process.kstack);
 

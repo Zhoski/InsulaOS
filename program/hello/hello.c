@@ -3,7 +3,7 @@
 #include <slib/memory.h>
 
 void main(u32 argc, u8* argv[]) {
-    clear_screen(0);
+    //clear_screen(0);
     printf("Hello startup %d\n", 65);
     init_heap();
     u8* txt = malloc(32);
@@ -30,7 +30,7 @@ void main(u32 argc, u8* argv[]) {
 
     //asm("hlt");
     
-    for(;;) {
+    /*for(;;) {
         char c = get_char();
         if(c) {
             if(c == 0x0A) {
@@ -39,6 +39,7 @@ void main(u32 argc, u8* argv[]) {
                 putchar(c);
             }
         };
-    }
+    }*/
+    for(;;);
     asm("int $0x40"::"a"(0));
 } 
