@@ -52,27 +52,27 @@ isr%1:
     pushad
     push ds
     push es
-
+    
     mov ax, 0x10
     mov es, ax
     mov ds, ax
 
-    mov eax, esp
-    push eax
+    ;mov eax, esp
+    ;push eax
 
     call %2
 
-    add esp, 4
+    ;add esp, 4
 
     mov al, 0x20
     out 0x20, al
     out 0xA0, al
 
-    ;pop gs
-    ;pop fs
     pop es
     pop ds
     popad
+    ;pop es
+    ;pop ds
 
     sti
 
@@ -89,7 +89,7 @@ EXCEPTIONS_ERR_CODE         13
 EXCEPTIONS_ERR_CODE         14
 
 isr64: 
-    cli                        
+    cli
     push edi
     push esi
     push ebp
@@ -115,10 +115,10 @@ isr64:
 
     mov eax, esp
     push eax
-
+    
     call syscall_handler
     add esp, 8
-    
+  
     pop ebx
     pop ecx
     pop edx     
@@ -137,7 +137,7 @@ isr64:
     pop esi
     pop edi
     
-    sti                         
+    sti
     iret 
 
 faults_handler:

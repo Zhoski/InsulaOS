@@ -27,6 +27,7 @@ extern void isr33();
 extern void isr64();
 extern void isr46();
 
+extern void jmp_usrmode(u32 entry, u32 stack);
 u32* krn_pg_dir;
 
 void kmain() { 
@@ -84,7 +85,27 @@ void kmain() {
     //
     //process_spawn("/apps/shell.ndf");
     execute("/apps/shell.ndf", 0, 0);
+    execute("/apps/hello.ndf", 0, 0);
 
+    proc_start_execute();
+
+    /*lldt(prcs_tbl[0].ldt_sel);
+
+    asm(
+        "movl %0, %%esp\n"
+        "popl %%ds\n"
+        "popl %%es\n"
+        "popal\n"
+        "iret"
+        :
+        : "r" (prcs_tbl[0].kstack)
+        : "memory"
+    );*/
+
+    //for(;;);
+
+    //proc_start_execute();
+    
     for(;;) {
         asm("hlt");
     }

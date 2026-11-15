@@ -12,7 +12,7 @@
 
 #define FREE       0xFFFF
 
-//extern void jmp_usrmode(u32 entry, u32 stack);
+extern void jmp_usrmode(u32 entry, u32 stack);
 
 Process prcs_tbl[MAX_PROCESS];
 u32 cur_prcs = 0;
@@ -39,34 +39,56 @@ void tbl_rm_process(u32 pid) {
   prcs_tbl[pid].pid = FREE;
 }
 
-void execute_next_process() {
-    /*while(prcs_tbl[cur_prcs].pid == 0xFFFF) {
-      cur_prcs++;
-      if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
+void proc_swap() {
+  if(prcs_start_executing) {
+    cur_prcs=0;
+    /*cur_prcs+=1;
+    if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
+    while(prcs_tbl[cur_prcs].pid == FREE &&
+        prcs_tbl[cur_prcs].state != ACTIVE) {
+
+        cur_prcs++;
+        if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
     }*/
 
+    ltr(prcs_tbl[cur_prcs].tss_sel);
     lldt(prcs_tbl[cur_prcs].ldt_sel);
 
-    /*for(;;);
+    asm(
+        "movl %0, %%esp\n"
+        //"popl %%ds\n"
+        //"popl %%es\n"
+        //"popal\n"
+        //"iret"
+        :
+        : "r" (prcs_tbl[cur_prcs].kstack)
+        : "memory"
+    );
+  }
+}
 
-    asm volatile(
-      "pushl %0\n"
-      "pushl %1\n"
-      "pushl %2\n"
-      "pushl %3\n"
-      "pushl %4\n"
-      "pushl %5\n"
+void proc_start_execute() {
+  prcs_start_executing = 1;
+  while(prcs_tbl[cur_prcs].pid == FREE &&
+        prcs_tbl[cur_prcs].state != ACTIVE) {
+
+    cur_prcs++;
+    if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
+  }
+
+  ltr(prcs_tbl[cur_prcs].tss_sel);
+  lldt(prcs_tbl[cur_prcs].ldt_sel);
+
+  asm(
+      "movl %0, %%esp\n"
+      "popl %%ds\n"
+      "popl %%es\n"
+      "popal\n"
+      "iret"
       :
-      : "r" (prcs_tbl[cur_prcs].regs.eax),
-        "r" (prcs_tbl[cur_prcs].regs.edx),
-        "r" (prcs_tbl[cur_prcs].regs.ecx),
-        "r" (prcs_tbl[cur_prcs].regs.ebx),
-        "r" (prcs_tbl[cur_prcs].regs.esi),
-        "r" (prcs_tbl[cur_prcs].regs.edi)
+      : "r" (prcs_tbl[cur_prcs].kstack)
       : "memory"
-    );*/
-    
-    //jmp_usrmode(prcs_tbl[cur_prcs].regs.eip, prcs_tbl[cur_prcs].regs.esp);
+  );
 }
 
 /*
@@ -88,9 +110,17 @@ Process* process_spawn(u8* f) {
   process.base = base;
   process.state = ACTIVE;
   process.ldt_sel = ldt_mk_and_push(base, limit, stack_limit);
-  process.regs.esp = stack_limit;
-  process.regs.esp = align(process.regs.esp, 16, LOWER);
-  process.regs.eip = align(process.stack_limit + 1, 1024, HIGHTER);
+  process.kstack = (u32)malloc(1024) + 1020;//0x1B0000;//(u32)malloc(128) + 120;
+  process.tss_sel = tss_mk_and_push(0x10, process.kstack);
+
+  video->kprintf("S: %x\n", process.kstack);
+
+  //for(;;);
+
+  video->kprintf("LDT: %x\n", process.ldt_sel);
+  video->kprintf("TSS: %x\n", process.tss_sel);
+
+  //for(;;);
 
   tbl_add_process(&process);
   return &prcs_tbl[process.pid];

@@ -89,9 +89,16 @@ u32 ldt_mk_and_push(u32 base, u32 limit, u32 stack_limit) {
     
     u32 sel = gdt_descriptor_add((u32)ldt, 23, 0x82, 0x00);
 
-    lldt(sel);
+    //lldt(sel);
 
     return sel;
+}
+
+u32 tss_mk_and_push(u32 ss0, u32 esp0) {
+    tss_t* tss = malloc(sizeof(tss_t));
+    tss->ss0 = ss0;
+    tss->esp0 = esp0;
+    return gdt_descriptor_add((u32)tss, sizeof(tss_t)-1, 0x89, 0x00);
 }
 
 void gdt_init() {

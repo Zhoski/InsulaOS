@@ -1,7 +1,7 @@
 #include <kernel/loader.h>
 #include <drivers/video/video.h>
 #include <kernel/memory.h>
-#include  <cpu/gdt.h>
+#include <cpu/gdt.h>
 #include <fs/fs.h>
 #include <lib/string.h>
 #include <kernel/process.h>
@@ -22,6 +22,24 @@ u32 virt_entry_point;
 
 u32 g_argc;
 u8** g_argv;
+
+void push(u32 addr, u32 v) {
+    u32* p = (u32*)addr;
+    *p = v;
+}
+
+void kstack_push_data(u32* kstack, u32 eip, u32 esp) {
+    push(*kstack, 0x17);  *kstack-=4;
+    push(*kstack, esp);   *kstack-=4;
+    push(*kstack, 0x202); *kstack-=4;
+    push(*kstack, 0x07);  *kstack-=4;
+    push(*kstack, eip);   *kstack-=4;
+    for(u32 i = 0; i < 8; i++) {
+        push(*kstack, 0x00);  *kstack-=4;
+    }
+    push(*kstack, 0x0F);  *kstack-=4;
+    push(*kstack, 0x0F);  //*kstack-=4;
+}
 
 u32 ndf_load(u8* f,void* phys_entry, u32 virt_entry) {
     u32 st = fs->read(f, phys_entry, g_node.size);
@@ -48,21 +66,25 @@ u32 execute(u8* f, u32 argc, u8* argv[]) {
     if(!process) return 0;
 
     void* phys_entry = (void*)process->base;
-    void* virt_stack = (void*)process->regs.esp;//process->stack_limit;
+    void* virt_stack = (void*)process->stack_limit;
 
-    //video->kprintf("%x\n", virt_stack);
-
-    //for(;;);
-
-    //virt_stack = (void*)align((u32)virt_stack, 16, LOWER);
+    virt_stack = (void*)align((u32)virt_stack, 16, LOWER);
 
     void* load_entry = phys_entry + process->stack_limit + 1;
 
-    ndf_load(f, load_entry, process->regs.eip);//align(process->stack_limit + 1, 1024, 1));
+    ndf_load(f, load_entry, align(process->stack_limit + 1, 1024, 1));
 
-    //prcs_start_executing = 1;
+    //video->kprintf("kkkkk: %x\n", process->kstack);
+    kstack_push_data(&process->kstack, virt_entry_point, (u32)virt_stack);
+    //video->kprintf("kkkkk: %x\n", process->kstack);
 
-    jmp_usrmode(virt_entry_point, (u32)virt_stack);
+    for(u32 i = 0; i < 15;i++) {
+        video->kprintf("%x\n", *(u32*)(process->kstack + (i << 2)));
+    }
+
+    //for(;;);
+
+    //jmp_usrmode(virt_entry_point, (u32)virt_stack);
     
     /*video->kprintf("Execute\n");
     g_argc = argc;

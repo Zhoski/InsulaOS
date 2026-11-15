@@ -12,26 +12,22 @@ typedef enum {
 } State;
 
 typedef struct {
-  u32 eax; u32 ebx; u32 ecx; u32 edx; u32 esi; u32 edi;
-  u32 esp; u32 eip; u32 ebp;
-} Register;
-
-typedef struct {
   u32 pid;
   u32 ldt_sel;
+  u32 tss_sel;
   u32 base;
   u32 limit;
   u32 stack_limit;
+  u32 kstack;
   u32 heap_base;
-  Register regs;
   State state;
 } Process;
 
 
 void prcs_tbl_init();
+void proc_start_execute();
+void proc_swap();
 Process* process_spawn(u8* f);
-
-void execute_next_process();
 
 extern Process prcs_tbl[MAX_PROCESS];
 extern u32 cur_prcs;
