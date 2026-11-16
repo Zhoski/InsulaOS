@@ -45,28 +45,18 @@ void proc_swap() {
     cur_prcs+=1;
     if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
 
-    while(prcs_tbl[cur_prcs].pid == FREE) {
+    while(prcs_tbl[cur_prcs].pid == FREE && prcs_tbl[cur_prcs].state == ACTIVE) {
       cur_prcs++;
       if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
     }
 
-    //video->kprintf("%d", cur_prcs);
-
-    //for(;;) asm("hlt");
-    //
-    //prcs_start_executing = 0;
     u32 i = 0;
     if(prcs_tbl[cur_prcs].flag == 1) i = 4;
-    //cur_prcs = 0;
     
     desc_t* tss_desc = (desc_t*)(gdt_addr + (prcs_tbl[cur_prcs].tss_sel << 3));
     tss_desc->acces &= ~0x02;
     ltr(prcs_tbl[cur_prcs].tss_sel);
     lldt(prcs_tbl[cur_prcs].ldt_sel);
-    /*for(u32 j = 0; j < 15;j++) {
-      video->kprintf("%x\n", *(u32*)(prcs_tbl[cur_prcs].kstack-4 + j * 4));
-    }
-    for(;;) asm("hlt");*/
    
     asm(
       "movl %0, %%esp\n"
@@ -121,6 +111,26 @@ void proc_start_execute() {
   );
 }
 
+u32 usr_md_get_proc(void* dest) {
+  u32* proc_entry_size = dest;
+  *proc_entry_size = sizeof(Process);
+  memcpy(prcs_tbl, dest + 4, sizeof(Process) * MAX_PROCESS);
+  return prcs_tbl[cur_prcs].sys_buffer;
+}
+
+void proc_kill(u32 pid) {
+  desc_t* ldt_desc = gdt_addr + (prcs_tbl[pid].ldt_sel << 3);
+  u32 base = ldt_desc->base_high << 24 | ldt_desc->base_mid << 16 | ldt_desc->base_low;
+  gdt_descriptor_rm(prcs_tbl[pid].ldt_sel);
+  gdt_descriptor_rm(prcs_tbl[pid].tss_sel);
+  free((void*)prcs_tbl[pid].base);
+  free((void*)prcs_tbl[pid].kstack);
+  free((void*)base);
+
+  prcs_tbl[pid].pid = FREE;
+  proc_swap();
+}
+
 /*
  * Возвращает указатель на процесс в prcs_tbl в случаи успеха и 0 в ином
 */
@@ -134,8 +144,11 @@ Process* process_spawn(u8* f) {
   u32 limit = (64 << 10)-1;
   u32 base = (u32)malloc(limit);
   u32 stack_limit = (8 << 10)-1;
+  process.name = malloc(strlen(g_node.name) + 1);
+  memcpy(g_node.name, process.name, strlen(g_node.name));
   process.heap_base = align(stack_limit + 1 + g_node.size, 1024, HIGHTER);
   process.stack_limit = stack_limit;
+  process.sys_buffer = align(stack_limit, 1024, HIGHTER);
   process.limit = limit;
   process.base = base;
   process.state = ACTIVE;

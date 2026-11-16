@@ -69,6 +69,7 @@ void keyboard_buf_insert(U8 c) {
     }
 } 
 
+#include <drivers/video/video.h>
 U8 kb_buf_get_las_sym() {
     if(_keyboard_buf[_keyboard_buf_read]!=0) {
         U8 temp = _keyboard_buf[_keyboard_buf_read];
@@ -77,7 +78,6 @@ U8 kb_buf_get_las_sym() {
     } 
     return 0; 
 }
-
 void keyboard_handler() {
     U8 scancode = inb(KEYBOARD_DATA_PORT);
     if(scancode & KEY_RELEASE_BIT ) {   
@@ -91,7 +91,7 @@ void keyboard_handler() {
         isShift = 1;
     }
     if(isShift) {
-        c = ascii_table_shift[scancode];
+        //c = ascii_table_shift[scancode];
     }
     keyboard_buf_insert(c);
 }

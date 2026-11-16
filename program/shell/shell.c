@@ -5,7 +5,7 @@
 #include <slib/types.h>
 
 #define COMMAND_BUFFER_SIZE    128
-#define COMMAND_COUNT           12
+#define COMMAND_COUNT           13
 
 #define SHIFT 0x01
 #define CAPS  0x02
@@ -30,6 +30,7 @@ u32 cmd_check();
 u32 cmd_sys();
 u32 cmd_cd();
 u32 cmd_mkdir();
+u32 cmd_proc();
 
 struct Command cmd[] = {
     {"help", cmd_help},
@@ -44,6 +45,7 @@ struct Command cmd[] = {
     {"sys",cmd_sys},
     {"cd", cmd_cd},
     {"mkdir", cmd_mkdir},
+    {"proc", cmd_proc},
 };
 u32 command_index = 0;
 u8 *command_buffer;
@@ -258,6 +260,23 @@ u32 cmd_cd() {
                 i--;
             }
         }
+    }
+}
+
+u32 cmd_proc() {
+    void* proc_tbl;
+    asm(
+      "int $0x40"
+      : "=a"(proc_tbl)
+      : "a" (18)  
+    );
+
+    printf("\nPID          BASE          LIMIT\n\n");
+    u32 entry_sz = *(u32*)proc_tbl;
+    proc_tbl+=4;
+    while(*(u32*)proc_tbl != 0xFFFF) {
+        printf("%d           %x          %x\n", *(u32*)proc_tbl,*(u32*)(proc_tbl+16),*(u32*)(proc_tbl+20));
+        proc_tbl+=entry_sz;
     }
 }
 

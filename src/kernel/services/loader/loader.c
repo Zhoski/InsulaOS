@@ -7,6 +7,8 @@
 #include <kernel/process.h>
 #include <lib/align.h>
 
+#define SYS_BUFFER_SIZE   0x1000
+
 uint32_t kernel_stack_ptr;
 uint32_t kernel_stack_base;
 uint32_t kernel_return_ptr;
@@ -70,9 +72,9 @@ u32 execute(u8* f, u32 argc, u8* argv[]) {
 
     virt_stack = (void*)align((u32)virt_stack, 16, LOWER);
 
-    void* load_entry = phys_entry + process->stack_limit + 1;
+    void* load_entry = phys_entry + process->stack_limit + 1 + SYS_BUFFER_SIZE;
 
-    ndf_load(f, load_entry, align(process->stack_limit + 1, 1024, 1));
+    ndf_load(f, load_entry, align(process->stack_limit + 1, 1024, 1) + SYS_BUFFER_SIZE);
 
     //video->kprintf("kkkkk: %x\n", process->kstack);
     kstack_push_data(&process->kstack, virt_entry_point, (u32)virt_stack);

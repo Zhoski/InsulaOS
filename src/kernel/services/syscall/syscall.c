@@ -12,8 +12,6 @@
  *  Исправить добавив базу сегмента данных ко всему что надо
  */
 void syscall_handler(syscall_ct* ct) { 
-    //asm volatile("sti");
-
     Process* process = &prcs_tbl[cur_prcs];
     u32 phys_ebx = ct->ebx + process->base;
     u32 phys_ecx = ct->ecx + process->base;
@@ -91,16 +89,19 @@ void syscall_handler(syscall_ct* ct) {
         video->terminal_set_cursor_position((u16)(ct->ebx >> 16), (u16)(ct->ebx));
         break;
     case GET_CURSOR:
-        video->terminal_get_cursor_position((u16*)ct->ecx, (u16*)ct->edx);
+        video->terminal_get_cursor_position((u16*)phys_ecx, (u16*)phys_edx);
         break;
     case SYS_WRITE:
         ct->eax = fs->update((u8*)ct->ebx, (u8*)ct->edx, ct->ecx);
         break;
     case WRITE_DIR:
-        fs->write_dir((u8*)ct->ebx);
+        fs->write_dir((u8*)phys_ebx);
         break;
     case INIT_HEAP:
         ct->eax = process->heap_base;
+        break;
+    case GET_PROC:
+        ct->eax = usr_md_get_proc((void*)(prcs_tbl[cur_prcs].base + prcs_tbl[cur_prcs].sys_buffer));
         break;
     default:
         break;

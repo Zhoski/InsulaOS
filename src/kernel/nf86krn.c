@@ -61,47 +61,10 @@ void kmain() {
     
     init_fs(FLUIDFS_T);
 
-    //video->kprintf("pid0: %x\n", process_tbl[0].pid);
-    //process_spawn("shell.ndf");
-    //video->kprintf("pid0: %x %s %x\n", process_tbl[0].pid, process_tbl[0].pname, (u32)process_tbl[0].pg_dir);
-
-    //u32 s = process_spawn("/apps/shell.ndf");
-    //u32 s2 = process_spawn("/apps/hello.ndf");
-    //process_spawn("/apps/tasm.ndf");
-
-    //Process* pr = process_tbl;
-
-    //video->kprintf("%s\n", pr->name);
-
-    /*for(u32 i = 0; i < 32; i++) {
-        if(process_tbl[i].pid != 0xFFFFFFFF) {
-            video->kprintf("PID%d:\n name: %s\n eip: %x\n stack: %x\n",process_tbl[i].pid, process_tbl[i].name, process_tbl[i].eip, process_tbl[i].stack);
-        }else {
-            break;
-        }
-    }*/
-
-    //video->kprintf("%s", process_tbl[0].name);
-    //
-    //process_spawn("/apps/shell.ndf");
     execute("/apps/shell.ndf", 0, 0);
-    execute("/apps/hello.ndf", 0, 0);
-
+    //execute("/apps/hello.ndf", 0, 0);
+    execute("/apps/tasm.ndf", 0, 0);
     proc_start_execute();
-
-    lldt(prcs_tbl[0].ldt_sel);
-    ltr(prcs_tbl[0].tss_sel);
-
-    asm(
-        "movl %0, %%esp\n"
-        "popl %%ds\n"
-        "popl %%es\n"
-        "popal\n"
-        "iret"
-        :
-        : "r" (prcs_tbl[0].kstack)
-        : "memory"
-    );
 
     //for(;;);
 

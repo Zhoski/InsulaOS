@@ -26,7 +26,6 @@ void ksleep(U32 delay) {
     }
 }
 void timer_handler() {
-    //cur_prcs++;
     proc_swap();
     tick++;
 }

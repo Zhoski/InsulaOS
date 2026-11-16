@@ -5,9 +5,6 @@
 void main(u32 argc, u8* argv[]) {
     //clear_screen(0);
     printf("Hello startup %d\n", 65);
-    init_heap();
-    u8* txt = malloc(32);
-    printf("addr: %x\n", txt);
 
     //printf("%s", argv[0]);
 

@@ -1,4 +1,5 @@
 #include <drivers/video/video.h>
+#include <kernel/process.h>
 #include <fs/fs.h>
 #include <lib/int.h>
 #include <kernel/device.h>
@@ -17,18 +18,22 @@ typedef struct {
 } __attribute__((packed)) stack;
 
 void c_faults_handler(stack* st) {
-    asm("cli");
-    video->clear_screen(0);
+    //asm("cli");
+    //video->clear_screen(0);
     switch (st->fn)
     {
         case DF: video->kprintf("Double Fault #DF\n"); break;
         case SS: video->kprintf("Stack-Segment Fault #SS\n"); break;
-        case GP: video->kprintf("General Protection Fault #GP\n"); break;
+        case GP:
+            video->kprintf("Process %s was %f12killed%f07 by the kernel because: ", prcs_tbl[cur_prcs].name);
+            video->kprintf("General Protection Fault #GP\n");
+            proc_kill(prcs_tbl[cur_prcs].pid);
+            break;
         case PF: video->kprintf("Page Fault #PF\n"); break;
         default: break;
     }
 
-    video->kprintf("\nEAX: %x\nEBX: %x\nECX: %x\nEDX: %x\n", st->eax, st->ebx, st->ecx, st->edx);
+    /*video->kprintf("\nEAX: %x\nEBX: %x\nECX: %x\nEDX: %x\n", st->eax, st->ebx, st->ecx, st->edx);
     video->kprintf("ESI: %x\nEDI: %x\nESP: %x\nEBP: %x\n", st->esi, st->edi, st->esp, st->ebp);
     video->kprintf("ERC: %x\nEIP: %x\nCS: %x\nEFL: %x\n", st->errc, st->eip, st->cs, st->efl);
     video->kprintf("ESP: %x\nSS: %x\n", st->esp, st->ss);
@@ -47,5 +52,5 @@ void c_faults_handler(stack* st) {
 
     for(;;) {
         asm("hlt");
-    }
+    }*/
 }
