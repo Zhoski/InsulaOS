@@ -68,7 +68,9 @@ u32 cmd_help() {
                         "   cat    [file]        -- read file\n"
                         "   write  [file] [data] -- write in file\n"
                         "   mkdir  [dir]         -- creates dir\n"
-                        "   ls                   -- displays all files in a directory\n";
+                        "   ls                   -- displays all files in a directory\n"
+                        "[PROCESS]\n"
+                        "   proc                 -- displays all process\n";
     printf(help_msg);
 }
 
@@ -93,7 +95,7 @@ u32 cmd_read() {
     if(!fd) {
         printf("[ %[04FAIL%[07 ] File %s not found", argv[1]);
     }else {
-        printf("%s", (u8*)(fd + 4));
+        printf("fd: %d\n", fd);
         sys_close(fd);
     }
 

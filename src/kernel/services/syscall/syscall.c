@@ -19,14 +19,15 @@ void syscall_handler(syscall_ct* ct) {
     switch (ct->eax)
     {
     case  SYS_EXIT:
-        asm volatile (
+        proc_kill(cur_prcs);
+        /*asm volatile (
             "movl %[stack_top], %%esp\n"
             "movl %[stack_base], %%ebp\n"
             "jmp *%[exit]"
             :
             : [exit] "r"(kernel_return_ptr), [stack_top] "r"(kernel_stack_ptr), [stack_base] "r" (kernel_stack_base)
             : "memory"
-        );
+        );*/
         break;
     case WRITE:
         switch (ct->ebx)
@@ -54,18 +55,15 @@ void syscall_handler(syscall_ct* ct) {
         free((u8*)ct->ebx); 
         break;
     case SYS_OPEN: {
-        u32 status = fs->check((u8*)ct->ebx);
-        if(status) {
-            u8* descriptor = (u8*)malloc(g_node.size + 5);
-            u32* fsize = (u32*)descriptor;
-            *fsize = g_node.size;
-            fs->read((u8*)ct->ebx, (u8*)(descriptor + 4), *fsize);
-            ct->eax = (u32)descriptor;
-        } else ct->eax = 0;
+        prcs_tbl[cur_prcs].state = FROZEN;
+        asm("sti");
+        ct->eax = fdesc_open((u8*)phys_ebx, cur_prcs);
+        asm("cli");
+        prcs_tbl[cur_prcs].state = ACTIVE;
         break;
     }
     case SYS_CLOSE:
-        free((u8*)ct->ebx);
+        fdesc_close(ct->ebx);
         break;
     case SYS_CREATE:
         ct->eax = fs->create((u8*)ct->ebx, (u8)ct->ecx);
@@ -95,7 +93,11 @@ void syscall_handler(syscall_ct* ct) {
         ct->eax = fs->update((u8*)ct->ebx, (u8*)ct->edx, ct->ecx);
         break;
     case WRITE_DIR:
+        prcs_tbl[cur_prcs].state = FROZEN;
+        asm("sti");
         fs->write_dir((u8*)phys_ebx);
+        asm("cli");
+        prcs_tbl[cur_prcs].state = ACTIVE;
         break;
     case INIT_HEAP:
         ct->eax = process->heap_base;

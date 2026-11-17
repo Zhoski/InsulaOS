@@ -7,7 +7,8 @@
 
 typedef enum {
   ACTIVE,
-  SLEEP,
+  FROZEN,
+  WAITING_DISK,
   DIED,
 } State;
 
@@ -26,6 +27,12 @@ typedef struct {
   State state;
 } Process;
 
+typedef struct {
+  u32 descriptor;
+  u32 owner;
+  u8* file;
+} Fdesc;
+
 u32  usr_md_get_proc(void* dest);
 void prcs_tbl_init();
 void proc_start_execute();
@@ -33,7 +40,11 @@ void proc_kill();
 void proc_swap();
 Process* process_spawn(u8* f);
 
+u32 fdesc_open(u8* f, u32 pid);
+void fdesc_close(u32 descriptor);
+
 extern Process prcs_tbl[MAX_PROCESS];
+extern Fdesc f_desc_tbl[MAX_PROCESS];
 extern u32 cur_prcs;
 extern u32 prcs_start_executing;
 

@@ -4,8 +4,9 @@
 #include <fs/fs.h>
 #include <drivers/video/video.h>
 #include <lib/string.h>
-#include <lib/align.h>
-
+#include <lib/other.h>
+#include <drivers/timer/timer.h>
+ 
 #define USR_RW_P   0x07
 #define USR_RW     0x06
 #define KRN_RW_P   0x03
@@ -17,6 +18,8 @@ extern void jmp_usrmode(u32 entry, u32 stack);
 Process prcs_tbl[MAX_PROCESS];
 u32 cur_prcs = 0;
 u32 prcs_start_executing = 0;
+
+Fdesc f_desc_tbl[MAX_PROCESS];
 
 void prcs_tbl_init() {
   for(u32 i = 0; i < MAX_PROCESS; i++) {
@@ -35,12 +38,9 @@ void tbl_add_process(Process* process) {
   }
 }
 
-void tbl_rm_process(u32 pid) {
-  prcs_tbl[pid].pid = FREE;
-}
-
 void proc_swap() {
   if(prcs_start_executing)  {
+    if(prcs_tbl[cur_prcs].state == FROZEN) return;
     prcs_tbl[cur_prcs].flag = 1;
     cur_prcs+=1;
     if(cur_prcs >= MAX_PROCESS) cur_prcs = 0;
@@ -72,14 +72,6 @@ void proc_swap() {
       : "r" (prcs_tbl[cur_prcs].kstack-i)
       : "memory"
     );
-    //asm("movl %%esp, %0":"=r"(esp));
-    //video->kprintf("esp: %x\n", esp);
-
-    /*for(u32 j = 0; j < 15;j++) {
-      video->kprintf("%x\n", *(u32*)(prcs_tbl[cur_prcs].kstack-4 + j * 4));
-    }*/
-   
-    //for(;;) asm("hlt");
   }
 }
 
@@ -126,6 +118,7 @@ void proc_kill(u32 pid) {
   free((void*)prcs_tbl[pid].base);
   free((void*)prcs_tbl[pid].kstack);
   free((void*)base);
+  free(prcs_tbl[pid].name);
 
   prcs_tbl[pid].pid = FREE;
   proc_swap();
@@ -159,13 +152,49 @@ Process* process_spawn(u8* f) {
 
   video->kprintf("S: %x\n", process.kstack);
 
-  //for(;;);
-
   video->kprintf("LDT: %x\n", process.ldt_sel);
   video->kprintf("TSS: %x\n", process.tss_sel);
 
-  //for(;;);
-
   tbl_add_process(&process);
   return &prcs_tbl[process.pid];
+}
+
+void fdesc_desc_push(Fdesc fdesc) {
+  for(u32 i = 0; i < MAX_PROCESS; i++) {
+    if(f_desc_tbl[i].descriptor == 0) {
+      memcpy(&fdesc, f_desc_tbl + i, sizeof(Fdesc));
+      break;
+    }
+  }
+}
+
+void fdesc_close(u32 descriptor) { 
+  for(u32 i = 0; i < MAX_PROCESS; i++) {
+    if(f_desc_tbl[i].descriptor == descriptor) {
+      f_desc_tbl[i].descriptor = 0;
+      free(f_desc_tbl[i].file);
+      break;
+    }
+  }
+}
+
+/*
+* TODO: Решить проблему с таймером
+*/
+u32 fdesc_open(u8* f, u32 pid) {
+  if(!fs->check(f)) return 0;
+  for(u32 i = 0; i < MAX_PROCESS; i++) {
+    if(strcmp(f, f_desc_tbl[i].file) == 0) return 1;
+  }
+  
+  Fdesc fdesc;
+  fdesc.descriptor = tick;
+  fdesc.owner = pid;
+
+  fdesc.file = malloc(strlen(f) + 1);
+  memcpy(f, fdesc.file, strlen(f));
+
+  fdesc_desc_push(fdesc);
+
+  return fdesc.descriptor;
 }

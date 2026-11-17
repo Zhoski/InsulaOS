@@ -5,4 +5,6 @@
 void init_timer(U32 freequence);
 void ksleep(U32 delay);
 
+extern volatile u32 tick;
+
 #endif

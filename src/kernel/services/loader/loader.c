@@ -5,7 +5,7 @@
 #include <fs/fs.h>
 #include <lib/string.h>
 #include <kernel/process.h>
-#include <lib/align.h>
+#include <lib/other.h>
 
 #define SYS_BUFFER_SIZE   0x1000
 
@@ -80,9 +80,6 @@ u32 execute(u8* f, u32 argc, u8* argv[]) {
     kstack_push_data(&process->kstack, virt_entry_point, (u32)virt_stack);
     //video->kprintf("kkkkk: %x\n", process->kstack);
 
-    for(u32 i = 0; i < 15;i++) {
-        video->kprintf("%x\n", *(u32*)(process->kstack + (i << 2)));
-    }
 
     //for(;;);
 

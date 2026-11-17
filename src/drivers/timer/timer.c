@@ -25,6 +25,8 @@ void ksleep(U32 delay) {
         halt();
     }
 }
+
+#include <drivers/video/video.h>
 void timer_handler() {
     proc_swap();
     tick++;

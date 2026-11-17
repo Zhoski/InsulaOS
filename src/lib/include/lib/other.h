@@ -1,5 +1,7 @@
-#ifndef ALIGN_H
-#define ALIGN_H
+#ifndef OTHER_H
+#define OTHER_H
+
+#include <drivers/timer/timer.h>
 
 #define LOWER    0
 #define HIGHTER  1

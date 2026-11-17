@@ -660,15 +660,12 @@ u32 fluidfs_write_dir(u8* dir) {
             cur_node = (node_t*)((u8*)cur_node + 128);
 
             if(cur_node->name[0] == 0) {
-                video->kprintf("3");
                 free((void*)cur_node_dir);
 
                 return 0;
             }
         }
     }
-
-    video->kprintf("Puzo");
 
     return 0;
 }

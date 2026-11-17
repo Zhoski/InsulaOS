@@ -10,9 +10,10 @@ Token* list;
 
 int main(u32 argc, u8* argv[]) {
     printf(HEADER);
-    u32* bad = (u32*)0x10000;
-    *bad = 3;
-    for(;;);
+    //u32* bad = (u32*)0x10000;
+    //*bad = 3;
+    //for(;;);
+    asm("int $0x40"::"a"(0));
     printf("Compiling %s to %s\n", argv[1], argv[2]);
 
     Token* list = (Token*)malloc(sizeof(Token) * 4);
