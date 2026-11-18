@@ -72,7 +72,11 @@ void syscall_handler(syscall_ct* ct) {
         ct->eax = fs->delete((u8*)ct->ebx);
         break;
     case SYS_RUN:
-        //execute((u8*)ct->ebx, ct->ecx, (u8**)ct->edx);
+        prcs_tbl[cur_prcs].state = FROZEN;
+        asm("sti");
+        ct->eax = execute((u8*)phys_ebx, ct->ecx, (u8**)phys_edx);
+        prcs_tbl[cur_prcs].state = ACTIVE;
+        asm("cli");
         break;
     case SET_BG:
         video->terminal_bg_vbe_set((u8)ct->ebx);
@@ -104,6 +108,22 @@ void syscall_handler(syscall_ct* ct) {
         break;
     case GET_PROC:
         ct->eax = usr_md_get_proc((void*)(prcs_tbl[cur_prcs].base + prcs_tbl[cur_prcs].sys_buffer));
+        break;
+    case SYS_READ:
+        u32 i = 0;
+        u32 can_read = 0;
+        for(;i < MAX_PROCESS;i++) {
+            if(f_desc_tbl[i].descriptor == ct->ebx && f_desc_tbl[i].owner == cur_prcs) {
+                can_read = 1;
+                break;
+            }
+        }
+
+        if(!can_read) ct->eax=0;
+        else {
+            ct->eax = fs->read((u8*)ct->esi, (u8*)ct->ecx, ct->edx);
+        }
+        
         break;
     default:
         break;

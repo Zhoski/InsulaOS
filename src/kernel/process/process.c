@@ -89,8 +89,6 @@ void proc_start_execute() {
   ltr(prcs_tbl[cur_prcs].tss_sel);
   lldt(prcs_tbl[cur_prcs].ldt_sel);
 
-  //ltr(prcs_tbl[0].tss_sel);
-
   asm(
       "movl %0, %%esp\n"
       "popl %%ds\n"
@@ -149,11 +147,6 @@ Process* process_spawn(u8* f) {
   process.kstack = (u32)malloc(1024) + 1020;//0x1B0000;//(u32)malloc(128) + 120;
   process.tss_sel = tss_mk_and_push(0x10, process.kstack);
   process.flag = 0;
-
-  video->kprintf("S: %x\n", process.kstack);
-
-  video->kprintf("LDT: %x\n", process.ldt_sel);
-  video->kprintf("TSS: %x\n", process.tss_sel);
 
   tbl_add_process(&process);
   return &prcs_tbl[process.pid];

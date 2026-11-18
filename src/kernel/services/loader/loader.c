@@ -65,7 +65,7 @@ u32 ndf_load(u8* f,void* phys_entry, u32 virt_entry) {
 
 u32 execute(u8* f, u32 argc, u8* argv[]) {
     Process* process = process_spawn(f);
-    if(!process) return 0;
+    if(!process) return 1;
 
     void* phys_entry = (void*)process->base;
     void* virt_stack = (void*)process->stack_limit;
@@ -78,7 +78,7 @@ u32 execute(u8* f, u32 argc, u8* argv[]) {
 
     //video->kprintf("kkkkk: %x\n", process->kstack);
     kstack_push_data(&process->kstack, virt_entry_point, (u32)virt_stack);
-    //video->kprintf("kkkkk: %x\n", process->kstack);
+    return 0;
 
 
     //for(;;);

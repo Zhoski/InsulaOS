@@ -44,6 +44,7 @@ void kmain() {
     pic_irq_mask(0x21, 0b11111000); 
     pic_irq_mask(0xA1, 0b10111111); 
     init_timer(100);
+    init_video();
     sti();
     mm_map_mk();
     //init_video();
@@ -51,7 +52,6 @@ void kmain() {
     create_heap(g_mm.krn_alloc, g_mm.krn_alloc_len);
     gdt_init();
     //pg_mapping();
-    init_video();
     prcs_tbl_init();
     pci_scan_bus0();               
     init_keyboard();                         
