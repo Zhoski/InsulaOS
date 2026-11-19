@@ -54,7 +54,7 @@ nasm -f elf32 src/cpu/jmp_usrmode.asm -o jmp_usrmode.o
 # ==============================================================================
 # ЯДРО И ВНУТРЕННИЕ СЕРВИСЫ
 # ==============================================================================
-gcc -m32 -ffreestanding -c src/kernel/nf86krn.c -Werror -Os -o nf86krn.o \
+gcc -m32 -ffreestanding -c src/kernel/inskrn.c -Werror -Os -o inskrn.o \
     -I./src/cpu/include -I./src/drivers/include -I./src/kernel/include -I./src/lib/include -I./src/fs/include
 
 gcc -m32 -ffreestanding -c src/kernel/services/memory/memory.c -Werror -Os -o memory.o \
@@ -90,11 +90,11 @@ gcc -m32 -ffreestanding -c src/fs/fluidfs.c -Werror -Os -o fluidfs.o \
 # ==============================================================================
 # ЛИНКОВКА 
 # ==============================================================================
-ld -m elf_i386 -T linker.ld nf86krn.o vesa_lfb_8bpp.o video.o keyboard.o \
+ld -m elf_i386 -T linker.ld inskrn.o vesa_lfb_8bpp.o video.o keyboard.o \
                  sata.o disk.o timer.o pci.o idt.o pic.o jmp_usrmode.o gdt_rel.o interrupts.o  gdt.o faults_handler.o panic.o memory.o \
-                 mm.o pmm.o paging.o syscall.o fluidfs.o fs.o loader.o scheduler.o process.o -o nf86krn.elf
+                 mm.o pmm.o paging.o syscall.o fluidfs.o fs.o loader.o scheduler.o process.o -o inskrn.elf
 
-objcopy -O binary nf86krn.elf bin/nf86krn.bin
+objcopy -O binary inskrn.elf bin/inskrn.bin
 
 cd program
 cd shell
@@ -123,7 +123,7 @@ cd ..
 
 echo '=================== FFSPACK ==================='
 ./utilities/ffspack/ffspack.elf -c out.img -M 4 -bs 4096 -b boot.bin -mb bin/main.bin
-./utilities/ffspack/ffspack.elf -d out.img -p bin/nf86krn.bin -o /system/
+./utilities/ffspack/ffspack.elf -d out.img -p bin/inskrn.bin -o /system/
 ./utilities/ffspack/ffspack.elf -d out.img -p license.txt about.txt bin/nf86krn.c -o /data/
 ./utilities/ffspack/ffspack.elf -d out.img -p bin/shell.ndf bin/hello.ndf bin/tasm.ndf bin/hex.ndf -o /apps/
 ./utilities/ffspack/ffspack.elf -d out.img -p bin/t.s bin/t.bin -o /

@@ -44,7 +44,7 @@ void kstack_push_data(u32* kstack, u32 eip, u32 esp) {
 }
 
 u32 ndf_load(u8* f,void* phys_entry, u32 virt_entry) {
-    u32 st = fs->read(f, phys_entry, g_node.size);
+    u32 st = fs->read(f, phys_entry, 0, g_node.size);
     if(st != 0) return 0;
 
     ndf_header_t ndf_header;

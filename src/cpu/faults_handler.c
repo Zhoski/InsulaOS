@@ -18,22 +18,25 @@ typedef struct {
 } __attribute__((packed)) stack;
 
 void c_faults_handler(stack* st) {
-    //asm("cli");
+    asm("cli");
     //video->clear_screen(0);
     switch (st->fn)
     {
         case DF: video->kprintf("Double Fault #DF\n"); break;
-        case SS: video->kprintf("Stack-Segment Fault #SS\n"); break;
+        case SS:
+            video->kprintf("Process %s was %f12killed%f07 by the kernel because: ", prcs_tbl[cur_prcs].name);
+            video->kprintf("Stack-Segment Fault #SS\n");
+            break;
         case GP:
             video->kprintf("Process %s was %f12killed%f07 by the kernel because: ", prcs_tbl[cur_prcs].name);
             video->kprintf("General Protection Fault #GP\n");
-            proc_kill(prcs_tbl[cur_prcs].pid);
+            //proc_kill(prcs_tbl[cur_prcs].pid);
             break;
         case PF: video->kprintf("Page Fault #PF\n"); break;
         default: break;
     }
 
-    /*video->kprintf("\nEAX: %x\nEBX: %x\nECX: %x\nEDX: %x\n", st->eax, st->ebx, st->ecx, st->edx);
+    video->kprintf("\nEAX: %x\nEBX: %x\nECX: %x\nEDX: %x\n", st->eax, st->ebx, st->ecx, st->edx);
     video->kprintf("ESI: %x\nEDI: %x\nESP: %x\nEBP: %x\n", st->esi, st->edi, st->esp, st->ebp);
     video->kprintf("ERC: %x\nEIP: %x\nCS: %x\nEFL: %x\n", st->errc, st->eip, st->cs, st->efl);
     video->kprintf("ESP: %x\nSS: %x\n", st->esp, st->ss);
@@ -42,15 +45,6 @@ void c_faults_handler(stack* st) {
     video->kprintf("CR0: %x\nCR2: %x\nCR3: %x\nCR4: %x\n", st->cr0, st->cr2, st->cr3, st->cr4);
     //video->kprintf("CR0: %x\n", st->cr0);
 
-    video->kprintf("press any key to restart shell\n");
 
-    u8 c = 0;
-    while (!c) c = kb.get_last_key();
-
-    video->clear_screen(0);
-    execute("/apps/shell.ndf",0,0);
-
-    for(;;) {
-        asm("hlt");
-    }*/
+    for(;;) asm("hlt");
 }

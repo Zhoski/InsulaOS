@@ -10,10 +10,10 @@ typedef struct FileSystem
 {
     u32 (*check)(u8* file_name);
     u32 (*open)(u8* file_name);
-    u32 (*read)(u8* file_name, u8* dest, u32 n);
+    u32 (*read)(u8* file_name, u8* dest, u32 offset, u32 n);
     u32 (*create)(u8* file_name, u8 flag);
     u32 (*delete)(u8* file_name);
-    u32 (*update) (u8* file_name, u8* src, u32 n);
+    u32 (*update) (u8* file_name, u8* src, u32 offset, u32 n);
     u32 (*write_dir) (u8 * dest);
     u32 (*init)();
 } FileSystem_t;

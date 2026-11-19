@@ -267,7 +267,7 @@ u32 fluidfs_fopen(u8* file) {
     u32 stack = 0x3FFFFF;
     u32 entry = 0x300000;
 
-    fluidfs_fread(file, (void*)entry, g_node.size);
+    fluidfs_fread(file, (void*)entry, 0, g_node.size);
 
     //pr_execute(file, 0, 0);
 }
@@ -276,7 +276,7 @@ u32 fluidfs_fopen(u8* file) {
  *  Читает n байт file в out
  *  В случаи успеха возвращает 0 иначе код ошибки
  */
-u32 fluidfs_fread(u8* file, u8* dest, u32 n) {
+u32 fluidfs_fread(u8* file, u8* dest, u32 offset, u32 n) {
     if(!fluidfs_fcheck(file)) {
         return FILE_NOT_FOUND;
     }
@@ -319,7 +319,7 @@ u32 fluidfs_fread(u8* file, u8* dest, u32 n) {
  *  Записывает в file из src n байт
  *  В случаи успеха возвращает 0 иначе код ошибки
  */
-u32 fluidfs_fwrite(u8* file, u8* src, u32 n) {
+u32 fluidfs_fwrite(u8* file, u8* src, u32 offset, u32 n) {
     if(!fluidfs_fcheck(file)) {
         return FILE_NOT_FOUND;
     }

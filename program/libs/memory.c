@@ -1,5 +1,6 @@
 #include <slib/memory.h>
 #include <slib/stdio.h>
+#include <slib/stdio.h>
 
 #define FREE                 1
 #define BUSY                 0
@@ -62,72 +63,54 @@ void init_heap() {
 }
 
 void* malloc(unsigned int size) {
-    unsigned int ret;
-    /*asm volatile(
-        "int $0x40"
-        :  "=a" (ret)
-        : "a" (3), "b" (n)
-        : "memory"
-    );*/            
-
     while(size%4!=0) size++;
-        u32 current_addres = (u32)g_heap_base + sizeof(Heap) + size;
-        Heap* current = block_heap;
+    u32 current_addres = (u32)g_heap_base + sizeof(Heap) + size;
+    Heap* current = block_heap;
     
-        while (current != NULL)
-        {
-            u32 heap_end_addres = (u32)g_heap_base + g_heap_sz;
+    while (current != NULL)
+    {
+        u32 heap_end_addres = (u32)g_heap_base + g_heap_sz;
 
-            if (current_addres + sizeof(Heap) >= heap_end_addres) {
-                return 0;
+        if (current_addres + sizeof(Heap) >= heap_end_addres) {
+            return 0;
+        }
+
+        if (current->size >= (size + sizeof(Heap)) && current->is_free == FREE) {
+            Heap new_heap = {
+                .is_free = FREE,
+                .size = current->size - size - sizeof(Heap),
+            };
+
+            current->size = size;
+            current->is_free = BUSY;
+
+            if (current->next != NULL) {
+                new_heap.next = current->next;
+            }
+            else {
+                new_heap.next = NULL;
+            }           
+
+            u8* t = (u8*)&new_heap;
+            u8* dest = (u8*)current_addres;
+            for (int i = 0; i < 12; i++) {
+                dest[i] = t[i];
             }
 
-            if (current->size >= (size + sizeof(Heap)) && current->is_free == FREE) {
-                Heap new_heap = {
-                    .is_free = FREE,
-                    .size = current->size - size - sizeof(Heap),
-                };
-    
-                current->size = size;
-                current->is_free = BUSY;
-    
-                if (current->next != NULL) {
-                    new_heap.next = current->next;
-                }
-                else {
-                    new_heap.next = NULL;
-                }           
-    
-                u8* t = (u8*)&new_heap;
-                u8* dest = (u8*)current_addres;
-                for (int i = 0; i < 12; i++) {
-                    dest[i] = t[i];
-                }
-    
-                current->next = (struct Heap*)current_addres;
-    
-                memset((void*)(current_addres - size), 0, size);
-                
-                return (void*)(current_addres - size);
-            }
-    
-            current_addres += (current->size + sizeof(Heap));
-            current = (Heap*)current->next;
+            current->next = (struct Heap*)current_addres;
+
+            memset((void*)(current_addres - size), 0, size);
+            return (void*)(current_addres - size);
+        }
+
+        current_addres += (current->size + sizeof(Heap));
+        current = (Heap*)current->next;
     }
-    
-    return 0;    
-    //return (void*)ret;
+
+    return 0;       
 }
 
 void free(void* ptr) {
-    /*asm volatile(
-        "int $0x40"
-        :
-        : "a" (4), "b" (ptr)
-        : "memory"
-    );*/
-
-    
     u8* heap = ptr - sizeof(Heap);
     u8* next = heap;
 

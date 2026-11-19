@@ -53,6 +53,18 @@ u8 *command_buffer;
 u32 *argv_buff;
 u8** argv;
 
+u8* logo = 
+"$$$$$$\\                               $$\\\n"           
+"\\_$$  _|                              $$ |\n"          
+"  $$ |  $$$$$$$\\   $$$$$$$\\ $$\\   $$\\ $$ | $$$$$$\\\n"  
+"  $$ |  $$  __$$\\ $$  _____|$$ |  $$ |$$ | \\____$$\\\n"
+"  $$ |  $$ |  $$ |\\$$$$$$\\  $$ |  $$ |$$ | $$$$$$$ |\n"
+"  $$ |  $$ |  $$ | \\____$$\\ $$ |  $$ |$$ |$$  __$$ |\n"
+"$$$$$$\\ $$ |  $$ |$$$$$$$  |\\$$$$$$  |$$ |\\$$$$$$$ |\n"
+"\\______|\\__|  \\__|\\_______/  \\______/ \\__| \\_______|\n\n";
+                                                    
+                                                    
+                                                    
 u8* info = "Copyright (c) 2026 Zhoski. Licensed under the MIT License.\n"
            "Type 'help' to get a list of commands.\n\n";
 
@@ -77,6 +89,7 @@ u32 cmd_help() {
 u32 cmd_clear() {
     clear_screen(0);
 
+    printf(logo);
     printf(info);
 }
 
@@ -91,12 +104,16 @@ u32 cmd_read() {
     strcat(full_path, argv[1]);
 
     u32 fd = sys_open(full_path);
-    
+
+    u8* fbuff = malloc(0x500);
+
     if(!fd) {
         printf("[ %[04FAIL%[07 ] File %s not found", argv[1]);
     }else {
-        printf("fd: %d\n", fd);
+        sys_read(fd, 0, 0x1000, fbuff);
+        printf("%s\n", fbuff);
         sys_close(fd);
+        free(fbuff);
     }
 
     free(full_path);
@@ -141,7 +158,9 @@ u32 cmd_write() {
 
     printf("path: %s\n", full_path);
 
-    if(sys_write(full_path, argv[2], strlen(argv[2])) == 0x00) {
+    u32 fd = sys_open(full_path);
+
+    if(sys_write(fd, argv[2], 0, strlen(argv[2])) == 0x00) {
         printf("[  %[02OK%[07  ] File %s overwrite", argv[1]);
     }else {
         printf("[ %[04FAIL%[07 ] File %s not found", argv[1]);
@@ -316,14 +335,12 @@ void execute() {
 
     u32 is_found = 0;
     for(u32 i = 0;i < COMMAND_COUNT;i++) {
-        //printf("cmp %s and %s\n", argv[0], cmd[i].cmd_name);
         if(strcmp(argv[0], cmd[i].cmd_name) == 0) {
             cmd[i].handler();
             is_found = 1;
         }
     }
 
-    // Утечка памяти в случаи открытия файла!!! Починить
     if(!is_found) {
         u8* full_path = malloc(strlen(cur_dir) + strlen(argv[0]) + 1);
         strcat(full_path, cur_dir);
@@ -347,8 +364,9 @@ void shell_main() {
     fg_set_color(7);
     clear_screen(0);
 
+    printf(logo);
     printf(info);
-    printf("NFOS86$%s> ", cur_dir);
+    printf("Insula$%s> ", cur_dir);
     for(u32 i = 0;i < COMMAND_BUFFER_SIZE;i++) {
         command_buffer[i] = 0;
     }
@@ -362,7 +380,7 @@ void shell_main() {
         if(c) {
             if(c == ENTER) {
                 execute();
-                printf("\nNFOS86$%s> ", cur_dir);
+                printf("\nInsula$%s> ", cur_dir);
             }else if(c == BACKSPACE && command_index != 0) {
                 u32 x;
                 u32 y;

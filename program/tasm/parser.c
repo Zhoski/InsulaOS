@@ -115,5 +115,5 @@ u32 parser(Token* list, u8* f) {
     tk = 0;
     pars_loop(list, GEN_CODE);
 
-    sys_write(f, dst_buff, dst_f_sz + sizeof(ndf_header_t));
+    //sys_write(f, dst_buff, dst_f_sz + sizeof(ndf_header_t));
 }

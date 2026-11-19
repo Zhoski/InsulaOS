@@ -16,7 +16,9 @@ void syscall_handler(syscall_ct* ct) {
     u32 phys_ebx = ct->ebx + process->base;
     u32 phys_ecx = ct->ecx + process->base;
     u32 phys_edx = ct->edx + process->base;
-    switch (ct->eax)
+    u32 phys_esi = ct->esi + process->base;
+    u32 phys_edi = ct->edi + process->base;
+        switch (ct->eax)
     {
     case  SYS_EXIT:
         proc_kill(cur_prcs);
@@ -93,9 +95,26 @@ void syscall_handler(syscall_ct* ct) {
     case GET_CURSOR:
         video->terminal_get_cursor_position((u16*)phys_ecx, (u16*)phys_edx);
         break;
-    case SYS_WRITE:
-        ct->eax = fs->update((u8*)ct->ebx, (u8*)ct->edx, ct->ecx);
+    case SYS_WRITE: {
+        u32 i = 0;
+        u32 can_read = 0;
+        for(;i < MAX_PROCESS;i++) {
+            if(f_desc_tbl[i].descriptor == ct->ebx && f_desc_tbl[i].owner == cur_prcs) {
+                can_read = 1;
+                break;
+            }
+        }
+
+        if(!can_read) ct->eax=0;
+        else {
+            prcs_tbl[cur_prcs].state = FROZEN;
+            asm("sti");
+            ct->eax = fs->update((u8*)f_desc_tbl[i].file, (u8*)phys_esi, ct->ecx, ct->edx);
+            prcs_tbl[cur_prcs].state = ACTIVE;
+            asm("cli");
+        }        //ct->eax = fs->update((u8*)ct->ebx, (u8*)ct->edx, ct->ecx);
         break;
+    }
     case WRITE_DIR:
         prcs_tbl[cur_prcs].state = FROZEN;
         asm("sti");
@@ -109,22 +128,15 @@ void syscall_handler(syscall_ct* ct) {
     case GET_PROC:
         ct->eax = usr_md_get_proc((void*)(prcs_tbl[cur_prcs].base + prcs_tbl[cur_prcs].sys_buffer));
         break;
-    case SYS_READ:
-        u32 i = 0;
-        u32 can_read = 0;
-        for(;i < MAX_PROCESS;i++) {
-            if(f_desc_tbl[i].descriptor == ct->ebx && f_desc_tbl[i].owner == cur_prcs) {
-                can_read = 1;
-                break;
-            }
-        }
-
-        if(!can_read) ct->eax=0;
-        else {
-            ct->eax = fs->read((u8*)ct->esi, (u8*)ct->ecx, ct->edx);
-        }
+    case SYS_READ: {
+        prcs_tbl[cur_prcs].state = FROZEN;
+        asm("sti");
+        ct->eax = fs->read((u8*)f_desc_tbl[prcs_tbl[cur_prcs].fdesc].file, (u8*)phys_esi, ct->ecx, ct->edx);
+        prcs_tbl[cur_prcs].state = ACTIVE;
+        asm("cli");
         
         break;
+    }
     default:
         break;
     }

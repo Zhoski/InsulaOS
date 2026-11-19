@@ -1,3 +1,1 @@
-NFOS86 is a lightweight 32-bit operating system written in C from scratch,
-without relying on existing standards; it features its own file system,
-file formats, and much more.
+Insula is an operating system written entirely from scratch, completely rejecting other people's standards. It has its own file system, file formats, its own assembler compiler, all software was written from scratch specifically for Insula, its own console editors, utilities, and much more.

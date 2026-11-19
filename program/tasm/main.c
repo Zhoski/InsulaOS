@@ -14,7 +14,7 @@ int main(u32 argc, u8* argv[]) {
     //u32* bad = (u32*)0x10000;
     //*bad = 3;
     //for(;;);
-    //printf("%d\n",sys_open("/apps/shell.ndf")); 
+    //printf("%d\n",sys_open("/apps/shell.ndf"));
     asm("int $0x40"::"a"(0));
     printf("Compiling %s to %s\n", argv[1], argv[2]);
 

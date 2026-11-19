@@ -24,6 +24,7 @@ typedef struct {
   u32 heap_base;
   u32 sys_buffer;
   u32 flag;
+  u32 fdesc;
   State state;
 } Process;
 

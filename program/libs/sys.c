@@ -1,11 +1,11 @@
 #include <slib/sys.h>
 
-unsigned int sys_read(const char* __restrict__ f, unsigned int n, unsigned char* dest) {
+unsigned int sys_read(unsigned int fd, unsigned int offset, unsigned int n, unsigned char* dest) {
     unsigned int ret = 0;
     asm volatile(
         "int $0x40"
         : "=a" (ret)
-        : "a" (5), "b" (1), "c" (n), "S" (f), "d" (dest)
+        : "a" (19), "b" (fd), "c" (offset), "d" (n), "S" (dest)
         : "memory"
     );
     return ret;
@@ -22,12 +22,12 @@ unsigned int sys_check(const char* f) {
     return ret;
 }
 
-unsigned int sys_write(const char* f, unsigned char* src, unsigned int n) {
+unsigned int sys_write(unsigned int fd, unsigned char* src, unsigned int offset, unsigned int n) {
     unsigned int ret;
     asm volatile(
         "int $0x40"
         : "=a" (ret)
-        : "a" (15), "b" (f), "c"(n), "d" (src)
+        : "a" (15), "b" (fd), "c" (offset), "d" (n), "S" (src)
         : "memory"
     );
     return ret;
