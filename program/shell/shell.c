@@ -105,7 +105,7 @@ u32 cmd_read() {
 
     u32 fd = sys_open(full_path);
 
-    u8* fbuff = malloc(0x500);
+    u8* fbuff = malloc(0x1000);
 
     if(!fd) {
         printf("[ %[04FAIL%[07 ] File %s not found", argv[1]);
@@ -347,7 +347,7 @@ void execute() {
         strcat(full_path, argv[0]);
         u32 err = sys_run(full_path, argc, argv);
         if(err) {
-            printf("\n%[04NFOS86: Unknown command %s%[07",argv[0]);
+            printf("\n%[04Unknown command %s%[07",argv[0]);
         }
 
         free(full_path);

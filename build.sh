@@ -114,6 +114,10 @@ cd ..
 cd hexdump
 make
 make clean
+cd ..
+cd test
+make
+make clean
 #cd ..
 #cd notepad
 #make
@@ -125,7 +129,7 @@ echo '=================== FFSPACK ==================='
 ./utilities/ffspack/ffspack.elf -c out.img -M 4 -bs 4096 -b boot.bin -mb bin/main.bin
 ./utilities/ffspack/ffspack.elf -d out.img -p bin/inskrn.bin -o /system/
 ./utilities/ffspack/ffspack.elf -d out.img -p license.txt about.txt bin/nf86krn.c -o /data/
-./utilities/ffspack/ffspack.elf -d out.img -p bin/shell.ndf bin/hello.ndf bin/tasm.ndf bin/hex.ndf -o /apps/
+./utilities/ffspack/ffspack.elf -d out.img -p bin/shell.ndf bin/hello.ndf bin/tasm.ndf bin/hex.ndf bin/test.ndf -o /apps/
 ./utilities/ffspack/ffspack.elf -d out.img -p bin/t.s bin/t.bin -o /
 
 qemu-system-i386 -m 4M -no-reboot \

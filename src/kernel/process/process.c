@@ -137,7 +137,7 @@ Process* process_spawn(u8* f) {
   u32 stack_limit = (8 << 10)-1;
   process.name = malloc(strlen(g_node.name) + 1);
   memcpy(g_node.name, process.name, strlen(g_node.name));
-  process.heap_base = align(stack_limit + 1 + g_node.size, 1024, HIGHTER);
+  process.heap_base = align(stack_limit + 1 + g_node.size + 0x1000, 1024, HIGHTER);
   process.stack_limit = stack_limit;
   process.sys_buffer = align(stack_limit, 1024, HIGHTER);
   process.limit = limit;

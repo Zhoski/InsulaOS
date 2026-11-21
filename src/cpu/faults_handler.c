@@ -30,20 +30,20 @@ void c_faults_handler(stack* st) {
         case GP:
             video->kprintf("Process %s was %f12killed%f07 by the kernel because: ", prcs_tbl[cur_prcs].name);
             video->kprintf("General Protection Fault #GP\n");
-            //proc_kill(prcs_tbl[cur_prcs].pid);
+            proc_kill(prcs_tbl[cur_prcs].pid);
             break;
         case PF: video->kprintf("Page Fault #PF\n"); break;
         default: break;
     }
 
-    video->kprintf("\nEAX: %x\nEBX: %x\nECX: %x\nEDX: %x\n", st->eax, st->ebx, st->ecx, st->edx);
+    /*video->kprintf("\nEAX: %x\nEBX: %x\nECX: %x\nEDX: %x\n", st->eax, st->ebx, st->ecx, st->edx);
     video->kprintf("ESI: %x\nEDI: %x\nESP: %x\nEBP: %x\n", st->esi, st->edi, st->esp, st->ebp);
     video->kprintf("ERC: %x\nEIP: %x\nCS: %x\nEFL: %x\n", st->errc, st->eip, st->cs, st->efl);
     video->kprintf("ESP: %x\nSS: %x\n", st->esp, st->ss);
     //video->kprintf("ESP: %x\nSS: %x\n", st->esp, st->ss);
     //video->kprintf("ESI: %x\nEDI: %x\n", st->esi, st->edi);
     video->kprintf("CR0: %x\nCR2: %x\nCR3: %x\nCR4: %x\n", st->cr0, st->cr2, st->cr3, st->cr4);
-    //video->kprintf("CR0: %x\n", st->cr0);
+    //video->kprintf("CR0: %x\n", st->cr0);*/
 
 
     for(;;) asm("hlt");
