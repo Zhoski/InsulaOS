@@ -156,8 +156,6 @@ u32 cmd_write() {
     strcat(full_path, cur_dir);
     strcat(full_path, argv[1]);
 
-    printf("path: %s\n", full_path);
-
     u32 fd = sys_open(full_path);
 
     if(sys_write(fd, argv[2], 0, strlen(argv[2])) == 0x00) {
@@ -165,6 +163,7 @@ u32 cmd_write() {
     }else {
         printf("[ %[04FAIL%[07 ] File %s not found", argv[1]);
     }
+    sys_close(fd);
 
     free(full_path);
 }

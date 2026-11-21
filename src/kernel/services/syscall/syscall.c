@@ -97,22 +97,20 @@ void syscall_handler(syscall_ct* ct) {
         break;
     case SYS_WRITE: {
         u32 i = 0;
-        u32 can_read = 0;
-        for(;i < MAX_PROCESS;i++) {
-            if(f_desc_tbl[i].descriptor == ct->ebx && f_desc_tbl[i].owner == cur_prcs) {
-                can_read = 1;
+        u32 find = 0;
+        for(; i < MAX_PROCESS;i++) {
+            if(f_desc_tbl[i].descriptor == ct->ebx) {
+                prcs_tbl[cur_prcs].state = FROZEN;
+                asm("sti");
+                ct->eax = fs->update((u8*)f_desc_tbl[i].file, (u8*)phys_esi, ct->ecx, ct->edx);
+                prcs_tbl[cur_prcs].state = ACTIVE;
+                asm("cli");
+                find = 1;
                 break;
             }
         }
-
-        if(!can_read) ct->eax=0;
-        else {
-            prcs_tbl[cur_prcs].state = FROZEN;
-            asm("sti");
-            ct->eax = fs->update((u8*)f_desc_tbl[i].file, (u8*)phys_esi, ct->ecx, ct->edx);
-            prcs_tbl[cur_prcs].state = ACTIVE;
-            asm("cli");
-        }        //ct->eax = fs->update((u8*)ct->ebx, (u8*)ct->edx, ct->ecx);
+        if(find) break;
+        ct->eax = 1;
         break;
     }
     case WRITE_DIR:
@@ -129,12 +127,22 @@ void syscall_handler(syscall_ct* ct) {
         ct->eax = usr_md_get_proc((void*)(prcs_tbl[cur_prcs].base + prcs_tbl[cur_prcs].sys_buffer));
         break;
     case SYS_READ: {
-        prcs_tbl[cur_prcs].state = FROZEN;
-        asm("sti");
-        ct->eax = fs->read((u8*)f_desc_tbl[prcs_tbl[cur_prcs].fdesc].file, (u8*)phys_esi, ct->ecx, ct->edx);
-        prcs_tbl[cur_prcs].state = ACTIVE;
-        asm("cli");
-        
+        u32 i = 0;
+        u32 find = 0;
+        for(; i < MAX_PROCESS;i++) {
+            if(f_desc_tbl[i].descriptor == ct->ebx) {
+                prcs_tbl[cur_prcs].state = FROZEN;
+                asm("sti");
+                ct->eax = fs->read((u8*)f_desc_tbl[i].file, (u8*)phys_esi, ct->ecx, ct->edx);
+                prcs_tbl[cur_prcs].state = ACTIVE;
+                asm("cli");
+                find = 1;
+                break;
+            }
+        }
+
+        if(find) break;
+        ct->eax = 1;
         break;
     }
     default:

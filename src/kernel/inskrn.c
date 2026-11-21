@@ -63,7 +63,7 @@ void kmain() {
 
     execute("/apps/shell.ndf", 0, 0);
     //execute("/apps/hello.ndf", 0, 0);
-    execute("/apps/tasm.ndf", 0, 0);
+    //execute("/apps/tasm.ndf", 0, 0);
     proc_start_execute();
 
     //for(;;);

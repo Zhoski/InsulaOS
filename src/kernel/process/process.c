@@ -164,8 +164,8 @@ u32 fdesc_desc_push(Fdesc fdesc) {
 void fdesc_close(u32 descriptor) { 
   for(u32 i = 0; i < MAX_PROCESS; i++) {
     if(f_desc_tbl[i].descriptor == descriptor) {
-      f_desc_tbl[i].descriptor = 0;
       free(f_desc_tbl[i].file);
+      memset(&f_desc_tbl[i], 0, sizeof(Fdesc));
       break;
     }
   }
@@ -174,9 +174,11 @@ void fdesc_close(u32 descriptor) {
 u32 fdesc_open(u8* f, u32 pid) {
   if(!fs->check(f)) return 0;
   for(u32 i = 0; i < MAX_PROCESS; i++) {
-    if(strcmp(f, f_desc_tbl[i].file) == 0) return 1;
+    if(strcmp(f, f_desc_tbl[i].file) == 0) {
+        return 0;
+      }
   }
-  
+ 
   Fdesc fdesc;
   fdesc.descriptor = tick;
   fdesc.owner = pid;
@@ -184,7 +186,7 @@ u32 fdesc_open(u8* f, u32 pid) {
   fdesc.file = malloc(strlen(f) + 1);
   memcpy(f, fdesc.file, strlen(f));
 
-  prcs_tbl[pid].fdesc = fdesc_desc_push(fdesc);
+  fdesc_desc_push(fdesc);
 
   return fdesc.descriptor;
 }
